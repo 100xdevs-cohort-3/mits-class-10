@@ -1,8 +1,18 @@
 const express = require("express")
 const cors = require("cors")
 const jwt = require("jsonwebtoken");
-// routing in express
-// in memory DB (MYSQL< POSTGRE, MOngoDB)
+const mongoose = require("mongoose");
+
+mongoose.connect("mongodb+srv://kirags123:scrPUH1eX1Prc0gn@todo-app.aatocrp.mongodb.net/todo-app-hkirat")
+
+const UserSchema = new mongoose.Schema({
+    username: String,
+    password: String,
+    todos: [{ title: String }],
+})
+
+const UserModel = mongoose.model('users', UserSchema);
+
 let users = [];
 
 const app = express();
@@ -10,63 +20,72 @@ app.use(cors());
 app.use(express.json());
 
 app.post("/signup", function(req, res) {
-    const {username, password} = req.body;
-    users.push({
-        username,
-        password,
+    const { username, password } = req.body;
+    UserModel.create({
+        username: username,
+        password: password,
         todos: []
-    })    
-    res.json({
-        message: "Signed up"
+    }).then(function() {
+        res.json({
+            message: "Signed up"
+        })
     })
 })
 
 app.post("/signin", function(req, res) {
     const {username, password} = req.body;
-    let user = users.find(u => u.username == username && u.password == password);
-    if (!user) {
-        return res.status(403).json({
-            message: "Incorrect creds"
-        })
-    } else {
-        let token = jwt.sign(username, "123random");
-        res.json({
-            token
-        })
-    }
+    // let user = users.find(u => u.username == username && u.password == password);
+    UserModel.findOne({
+        username: username,
+        password: password
+    }).then(function(user) {
+        console.log(user);
+        
+        if (!user) {
+            return res.status(403).json({
+                message: "Incorrect creds"
+            })
+        } else {
+            let token = jwt.sign(user.username, "123random");
+            res.json({
+                token
+            })
+        }
+    })
+    
 })
 
 app.post("/todos", function(req, res) {
     const token = req.headers.token;
     let todo = req.body.todo;
     let username = jwt.verify(token, "123random");
-    let user = users.find(u => u.username == username);
-    if (!user) {
-        return res.status(403).json({
-            message: "Unauthenticated"
+
+    UserModel.findOne({
+        username: username,
+    }).then(function(user) {
+        console.log(user);
+        user.todos.push({
+            title: todo
         })
-    } else {
-        user.todos.push(todo);
+        user.save()
+
         res.json({
             message: "Todo added"
         })
-    }
+    })
 })
 
 app.get("/todos", function(req, res) {
     const token = req.headers.token;
     let username = jwt.verify(token, "123random");
-    let user = users.find(u => u.username == username);
     
-    if (!user) {
-        return res.status(403).json({
-            message: "todos not found"
-        })
-    } else {
+    UserModel.findOne({
+        username: username,
+    }).then(function(user) {
         res.json({
-            todos: user.todos
+            todos: user.todos.map(t => t.title)
         })
-    }
+    })
 })
 
 app.listen(3000);
