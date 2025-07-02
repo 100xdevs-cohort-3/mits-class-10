@@ -30,13 +30,40 @@ function Dashboard() {
 
     return (
         <div>
-            <input id="todo" type="text" placeholder="todo" />
-            <button onClick={addTodo}>Submit todo</button>
+            <div style={{
+                display: "flex", justifyContent: "center"
+            }}>
+                <input style={{
+                    margin: 20,
+                    padding: 10
+                }} id="todo" type="text" placeholder="todo" />
+                <div style={{display: "flex", flexDirection: "column", justifyContent: "center"}}>
+                    <button onClick={addTodo}>Submit todo</button>
+                </div>
+            </div>
 
-            <div>
-                {todos.map(todo => <div>
-                    {todo}    
-                </div>)}
+            <div style={{
+                display: "flex",
+                justifyContent: "center"
+            }}>
+                <input style={{
+                    margin: 20,
+                    padding: 10
+                }} placeholder="Search" />
+            </div>
+
+
+            <div style={{
+                display: "flex",
+                justifyContent: "center"
+            }}>
+                <div>
+                    {todos.map(todo => <div> <div>
+                        {todo}
+                    </div>
+                    <br/>
+                    </div>)}
+                </div>
             </div>
 
         </div>

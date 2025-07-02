@@ -2,25 +2,28 @@ const express = require("express")
 const cors = require("cors")
 const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
+const { CreateUserInput, SigninInput, TodoInput } = require("./types");
+const { UserModel } = require("./models");
+// Input sanitation
 
 mongoose.connect("mongodb+srv://kirags123:scrPUH1eX1Prc0gn@todo-app.aatocrp.mongodb.net/todo-app-hkirat")
-
-const UserSchema = new mongoose.Schema({
-    username: String,
-    password: String,
-    todos: [{ title: String }],
-})
-
-const UserModel = mongoose.model('users', UserSchema);
-
-let users = [];
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
+
 app.post("/signup", function(req, res) {
-    const { username, password } = req.body;
+    const response = CreateUserInput.safeParse(req.body);
+
+    if (!response.success) {
+        return res.json({
+            message: "Incorrect inputs"
+        })
+    }
+
+    const {username, password} = req.body;
+
     UserModel.create({
         username: username,
         password: password,
